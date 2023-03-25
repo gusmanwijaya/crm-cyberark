@@ -1,17 +1,51 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useState } from "react";
-
+import { useRouter } from "next/router";
 import { Button, Input } from "react-daisyui";
+import Swal from "sweetalert2";
+import Cookies from "js-cookie";
 
 import HeadComponent from "@/components/HeadComponent";
 import FooterComponent from "@/components/FooterComponent";
 import GapComponent from "@/components/GapComponent";
-import { useRouter } from "next/router";
+
+import { signIn } from "@/services/auth";
 
 const SignIn = () => {
   const router = useRouter();
 
   const [disabledButton, setDisabledButton] = useState(false);
+
+  const [form, setForm] = useState({
+    username: "",
+    password: "",
+  });
+
+  const handleSignIn = async () => {
+    setDisabledButton(true);
+    if (form?.username !== "" && form?.password !== "") {
+      const response = await signIn(form);
+      if (response?.data?.statusCode === 200) {
+        Cookies.set("tkn", response?.data?.data);
+        router.push("/dashboard");
+        setDisabledButton(false);
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Kredensial Anda tidak valid.",
+          text: response?.data?.message,
+        });
+        setDisabledButton(false);
+      }
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Silahkan isi username dan password Anda.",
+      });
+      setDisabledButton(false);
+    }
+  };
 
   return (
     <>
@@ -35,21 +69,35 @@ const SignIn = () => {
                 <label className="label">
                   <span className="label-text">Username</span>
                 </label>
-                <Input name="username" type="text" required />
+                <Input
+                  name="username"
+                  type="text"
+                  onChange={(event) =>
+                    setForm({ ...form, username: event?.target?.value })
+                  }
+                  required
+                />
               </div>
 
               <div className="form-control w-full max-w-xs">
                 <label className="label">
                   <span className="label-text">Password</span>
                 </label>
-                <Input name="password" type="password" required />
+                <Input
+                  name="password"
+                  type="password"
+                  onChange={(event) =>
+                    setForm({ ...form, password: event?.target?.value })
+                  }
+                  required
+                />
               </div>
 
               <GapComponent height={10} />
 
               <div className="form-control w-full max-w-xs">
                 <Button
-                  onClick={() => router.push(`/dashboard`)}
+                  onClick={handleSignIn}
                   className={`capitalize text-white ${
                     disabledButton && "cursor-not-allowed"
                   }`}
@@ -93,3 +141,18 @@ const SignIn = () => {
 };
 
 export default SignIn;
+
+export async function getServerSideProps({ req }) {
+  const { tkn } = req.cookies;
+  if (tkn)
+    return {
+      redirect: {
+        destination: "/dashboard",
+        permanent: false,
+      },
+    };
+
+  return {
+    props: {},
+  };
+}

@@ -1,3 +1,4 @@
+import Cookies from "js-cookie";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { Button, Dropdown, Menu, Navbar } from "react-daisyui";
@@ -9,6 +10,13 @@ const NavbarComponent = () => {
 
   const toggleVisible = () => {
     setVisible(!visible);
+  };
+
+  const handleSignOut = () => {
+    Cookies.remove("tkn");
+    localStorage.clear();
+    sessionStorage.clear();
+    router.replace("/");
   };
 
   return (
@@ -60,7 +68,7 @@ const NavbarComponent = () => {
                     </p>
                   </li>
                   <li>
-                    <p>Keluar</p>
+                    <p onClick={handleSignOut}>Keluar</p>
                   </li>
                 </ul>
               </li>
@@ -100,7 +108,7 @@ const NavbarComponent = () => {
                   </p>
                 </Menu.Item>
                 <Menu.Item>
-                  <p>Keluar</p>
+                  <p onClick={handleSignOut}>Keluar</p>
                 </Menu.Item>
               </Menu>
             </Menu.Item>

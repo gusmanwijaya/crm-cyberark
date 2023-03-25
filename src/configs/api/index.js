@@ -7,6 +7,7 @@ export default async function CallApi({
   data,
   token,
   serverToken,
+  params,
 }) {
   let headers = {};
 
@@ -28,6 +29,7 @@ export default async function CallApi({
     method,
     data,
     headers,
+    params,
   }).catch((error) => error.response);
 
   return response;
