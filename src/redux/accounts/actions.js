@@ -8,7 +8,7 @@ import { setLoading } from "@/redux/loading/actions";
 import { getAllAccounts } from "@/services/accounts";
 import debounce from "debounce-promise";
 
-const debouncedGetAll = debounce(getAllAccounts, 500);
+const debouncedGetAll = debounce(getAllAccounts, 3000);
 
 const setSearch = (search) => {
   return {

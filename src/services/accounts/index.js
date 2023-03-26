@@ -25,12 +25,3 @@ export async function getAllAccounts({
     token: true,
   });
 }
-
-export async function getExtendedAccounts(accountId) {
-  const url = `${ROOT_API}/get-extended-accounts/${accountId}`;
-  return CallApi({
-    url,
-    method: "GET",
-    token: true,
-  });
-}

@@ -3,14 +3,18 @@ import { createStore, applyMiddleware, combineReducers } from "redux";
 import { composeWithDevTools } from "@redux-devtools/extension";
 import thunkMiddleware from "redux-thunk";
 
-import accountsReducers from "./accounts/reducers";
 import loadingReducers from "./loading/reducers";
+import accountsReducers from "./accounts/reducers";
+import extendedAccountsReducers from "./extended-accounts/reducers";
+import myRequestsReducers from "./my-requests/reducers";
 
 let store;
 
 const reducers = combineReducers({
-  accountsReducers,
   loadingReducers,
+  accountsReducers,
+  extendedAccountsReducers,
+  myRequestsReducers,
 });
 
 function initStore(initialState) {

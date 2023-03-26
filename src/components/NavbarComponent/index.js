@@ -46,32 +46,14 @@ const NavbarComponent = () => {
               className={`w-52 menu-compact mt-3 ${!visible && "hidden"}`}
             >
               <Dropdown.Item>
+                <p onClick={() => router.push(`/accounts`)}>Accounts</p>
+              </Dropdown.Item>
+              <Dropdown.Item>
                 <p onClick={() => router.push(`/my-request`)}>My Request</p>
               </Dropdown.Item>
-              <li tabIndex={0}>
-                <div className="justify-between">
-                  Pengaturan
-                  <svg
-                    className="fill-current"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width={24}
-                    height={24}
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
-                  </svg>
-                </div>
-                <ul className="p-2 bg-base-100">
-                  <li>
-                    <p onClick={() => router.push(`/ganti-password`)}>
-                      Ganti Password
-                    </p>
-                  </li>
-                  <li>
-                    <p onClick={handleSignOut}>Keluar</p>
-                  </li>
-                </ul>
-              </li>
+              <Dropdown.Item>
+                <p onClick={handleSignOut}>Keluar</p>
+              </Dropdown.Item>
             </Dropdown.Menu>
             {/* END: Menu Mobile */}
           </Dropdown>
@@ -86,31 +68,13 @@ const NavbarComponent = () => {
         <Navbar.Center className="hidden lg:flex">
           <Menu horizontal className="p-0">
             <Menu.Item>
+              <p onClick={() => router.push(`/accounts`)}>Accounts</p>
+            </Menu.Item>
+            <Menu.Item>
               <p onClick={() => router.push(`/my-request`)}>My Request</p>
             </Menu.Item>
-            <Menu.Item tabIndex={0}>
-              <div>
-                Pengaturan
-                <svg
-                  className="fill-current"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width={20}
-                  height={20}
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" />
-                </svg>
-              </div>
-              <Menu className="p-2 bg-base-100 lg:z-10 rounded-lg">
-                <Menu.Item>
-                  <p onClick={() => router.push(`/ganti-password`)}>
-                    Ganti Password
-                  </p>
-                </Menu.Item>
-                <Menu.Item>
-                  <p onClick={handleSignOut}>Keluar</p>
-                </Menu.Item>
-              </Menu>
+            <Menu.Item>
+              <p onClick={handleSignOut}>Keluar</p>
             </Menu.Item>
           </Menu>
         </Navbar.Center>

@@ -27,7 +27,7 @@ const SignIn = () => {
       const response = await signIn(form);
       if (response?.data?.statusCode === 200) {
         Cookies.set("tkn", response?.data?.data);
-        router.push("/dashboard");
+        router.push("/my-request");
         setDisabledButton(false);
       } else {
         Swal.fire({
@@ -147,7 +147,7 @@ export async function getServerSideProps({ req }) {
   if (tkn)
     return {
       redirect: {
-        destination: "/dashboard",
+        destination: "/my-request",
         permanent: false,
       },
     };
