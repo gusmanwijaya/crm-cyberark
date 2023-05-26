@@ -47,6 +47,12 @@ const SignIn = () => {
     }
   };
 
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter") {
+      handleSignIn();
+    }
+  };
+
   return (
     <>
       <HeadComponent />
@@ -76,6 +82,7 @@ const SignIn = () => {
                     setForm({ ...form, username: event?.target?.value })
                   }
                   required
+                  onKeyPress={handleKeyPress}
                 />
               </div>
 
@@ -90,6 +97,7 @@ const SignIn = () => {
                     setForm({ ...form, password: event?.target?.value })
                   }
                   required
+                  onKeyPress={handleKeyPress}
                 />
               </div>
 

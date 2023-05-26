@@ -76,9 +76,21 @@ export default function MyRequest() {
     dispatch(fetchAllMyRequests());
   }, [dispatch]);
 
+  const defaultFromDate = `${new Date().getFullYear()}-${
+    (new Date().getMonth() + 1).toString().length < 2
+      ? `0${new Date().getMonth() + 1}`
+      : `${new Date().getMonth() + 1}`
+  }-${new Date().getDate()}T08:00`;
+
+  const defaultToDate = `${new Date().getFullYear()}-${
+    (new Date().getMonth() + 1).toString().length < 2
+      ? `0${new Date().getMonth() + 1}`
+      : `${new Date().getMonth() + 1}`
+  }-${new Date().getDate() + 1}T23:30`;
+
   const [form, setForm] = useState({
-    FromDate: 0,
-    ToDate: 0,
+    FromDate: Math.floor(new Date(defaultFromDate).getTime() / 1000),
+    ToDate: Math.floor(new Date(defaultToDate).getTime() / 1000),
     Username: "",
     Address: "",
     Reason: "",
@@ -86,31 +98,51 @@ export default function MyRequest() {
 
   const handleBulkRequests = async () => {
     setDisabledButtonRequest(true);
-    if (
-      form?.FromDate !== 0 &&
-      form?.ToDate !== 0 &&
-      form?.Username !== "" &&
-      form?.Address !== "" &&
-      form?.Reason !== ""
-    ) {
-      const response = await createBulkRequests(form);
-      if (response?.data?.statusCode === 201) {
-        dispatch(fetchAllMyRequests());
-        setVisibleRequest(false);
-        setDisabledButtonRequest(false);
-        Swal.fire({
-          icon: "success",
-          title: "Berhasil Bulk Requests.",
-          text: response?.data?.message || "Berhasil melakukan bulk requests.",
-        });
-      } else {
+    if (form?.Username !== "" && form?.Address !== "" && form?.Reason !== "") {
+      if (!form?.Username.includes(";")) {
         Swal.fire({
           icon: "error",
           title: "Oops...",
-          text:
-            response?.data?.message || "Nampaknya terjadi kesalahan di API.",
+          text: "Format field username tidak sesuai.",
         });
         setDisabledButtonRequest(false);
+      } else if (!form?.Address.includes(";")) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Format field address tidak sesuai.",
+        });
+        setDisabledButtonRequest(false);
+      } else {
+        const response = await createBulkRequests(form);
+        if (response?.data?.statusCode === 201) {
+          dispatch(fetchAllMyRequests());
+          setVisibleRequest(false);
+          setDisabledButtonRequest(false);
+
+          if (response?.data?.data?.length > 0) {
+            Swal.fire({
+              icon: "success",
+              title: "Berhasil Bulk Requests.",
+              text:
+                response?.data?.message || "Berhasil melakukan bulk requests.",
+            });
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: "Oops...",
+              text: "Belum berhasil melakukan bulk requests.",
+            });
+          }
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text:
+              response?.data?.message || "Nampaknya terjadi kesalahan di API.",
+          });
+          setDisabledButtonRequest(false);
+        }
       }
     } else {
       Swal.fire({
@@ -156,6 +188,12 @@ export default function MyRequest() {
         }
       }
     });
+  };
+
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter") {
+      handleBulkRequests();
+    }
   };
 
   return (
@@ -371,17 +409,10 @@ export default function MyRequest() {
                 <span className="label-text">From Date</span>
               </label>
               <Input
+                value={defaultFromDate}
                 name="FromDate"
                 type="datetime-local"
-                required
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    FromDate: Math.floor(
-                      new Date(`${event?.target?.value}`).getTime() / 1000
-                    ),
-                  })
-                }
+                disabled
               />
             </div>
 
@@ -390,17 +421,10 @@ export default function MyRequest() {
                 <span className="label-text">To Date</span>
               </label>
               <Input
+                value={defaultToDate}
                 name="ToDate"
                 type="datetime-local"
-                required
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    ToDate: Math.floor(
-                      new Date(`${event?.target?.value}`).getTime() / 1000
-                    ),
-                  })
-                }
+                disabled
               />
             </div>
 
@@ -414,9 +438,10 @@ export default function MyRequest() {
                 onChange={(event) =>
                   setForm({ ...form, Username: event?.target?.value })
                 }
+                onKeyPress={handleKeyPress}
               />
               <p className="text-xs text-blue-500">
-                Ex: LIN.OPR.ROOT,ORA.OPR.SYS.EVDB,...
+                Example: LIN.OPR.ROOT;ORA.OPR.SYS.EVDB;...
               </p>
             </div>
 
@@ -430,9 +455,10 @@ export default function MyRequest() {
                 onChange={(event) =>
                   setForm({ ...form, Address: event?.target?.value })
                 }
+                onKeyPress={handleKeyPress}
               />
               <p className="text-xs text-blue-500">
-                Ex: 10.254.161.62,10.254.161.64,...
+                Example: 10.254.161.62;10.254.161.64;...
               </p>
             </div>
 
@@ -446,6 +472,7 @@ export default function MyRequest() {
                 onChange={(event) =>
                   setForm({ ...form, Reason: event?.target?.value })
                 }
+                onKeyPress={handleKeyPress}
               />
             </div>
 
