@@ -99,50 +99,34 @@ export default function MyRequest() {
   const handleBulkRequests = async () => {
     setDisabledButtonRequest(true);
     if (form?.Username !== "" && form?.Address !== "" && form?.Reason !== "") {
-      if (!form?.Username.includes(";")) {
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: "Format field username tidak sesuai.",
-        });
+      const response = await createBulkRequests(form);
+      if (response?.data?.statusCode === 201) {
+        dispatch(fetchAllMyRequests());
+        setVisibleRequest(false);
         setDisabledButtonRequest(false);
-      } else if (!form?.Address.includes(";")) {
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: "Format field address tidak sesuai.",
-        });
-        setDisabledButtonRequest(false);
-      } else {
-        const response = await createBulkRequests(form);
-        if (response?.data?.statusCode === 201) {
-          dispatch(fetchAllMyRequests());
-          setVisibleRequest(false);
-          setDisabledButtonRequest(false);
 
-          if (response?.data?.data?.length > 0) {
-            Swal.fire({
-              icon: "success",
-              title: "Berhasil Bulk Requests.",
-              text:
-                response?.data?.message || "Berhasil melakukan bulk requests.",
-            });
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Oops...",
-              text: "Belum berhasil melakukan bulk requests.",
-            });
-          }
+        if (response?.data?.data?.length > 0) {
+          Swal.fire({
+            icon: "success",
+            title: "Berhasil Bulk Requests.",
+            text:
+              response?.data?.message || "Berhasil melakukan bulk requests.",
+          });
         } else {
           Swal.fire({
             icon: "error",
             title: "Oops...",
-            text:
-              response?.data?.message || "Nampaknya terjadi kesalahan di API.",
+            text: "Belum berhasil melakukan bulk requests.",
           });
-          setDisabledButtonRequest(false);
         }
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text:
+            response?.data?.message || "Nampaknya terjadi kesalahan di API.",
+        });
+        setDisabledButtonRequest(false);
       }
     } else {
       Swal.fire({
