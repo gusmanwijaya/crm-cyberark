@@ -76,17 +76,32 @@ export default function MyRequest() {
     dispatch(fetchAllMyRequests());
   }, [dispatch]);
 
-  const defaultFromDate = `${new Date().getFullYear()}-${
-    (new Date().getMonth() + 1).toString().length < 2
-      ? `0${new Date().getMonth() + 1}`
-      : `${new Date().getMonth() + 1}`
-  }-${new Date().getDate()}T08:00`;
+  const today = new Date().toLocaleDateString();
+  const todayDate = today.split("/")[1];
+  const todayDateTwoDigit =
+    todayDate.toString().length < 2 ? `0${todayDate}` : `${todayDate}`;
+  const todayMonth = today.split("/")[0];
+  const todayMonthTwoDigit =
+    todayMonth.toString().length < 2 ? `0${todayMonth}` : `${todayMonth}`;
+  const todayYear = today.split("/")[2];
 
-  const defaultToDate = `${new Date().getFullYear()}-${
-    (new Date().getMonth() + 1).toString().length < 2
-      ? `0${new Date().getMonth() + 1}`
-      : `${new Date().getMonth() + 1}`
-  }-${new Date().getDate() + 1}T23:30`;
+  const defaultFromDate = `${todayYear}-${todayMonthTwoDigit}-${todayDateTwoDigit}T08:00`;
+
+  const dayNow = new Date();
+  const tempTomorrow = new Date(dayNow);
+  tempTomorrow.setDate(dayNow.getDate() + 1);
+  const tomorrow = tempTomorrow.toLocaleDateString();
+  const tomorrowDate = tomorrow.split("/")[1];
+  const tomorrowDateTwoDigit =
+    tomorrowDate.toString().length < 2 ? `0${tomorrowDate}` : `${tomorrowDate}`;
+  const tomorrowMonth = tomorrow.split("/")[0];
+  const tomorrowMonthTwoDigit =
+    tomorrowMonth.toString().length < 2
+      ? `0${tomorrowMonth}`
+      : `${tomorrowMonth}`;
+  const tomorrowYear = tomorrow.split("/")[2];
+
+  const defaultToDate = `${tomorrowYear}-${tomorrowMonthTwoDigit}-${tomorrowDateTwoDigit}T23:30`;
 
   const [form, setForm] = useState({
     FromDate: Math.floor(new Date(defaultFromDate).getTime() / 1000),
