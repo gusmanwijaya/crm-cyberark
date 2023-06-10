@@ -6,9 +6,10 @@ import {
 
 import { setLoading } from "@/redux/loading/actions";
 import { getAllAccounts } from "@/services/accounts";
+import { fetchAllMyRequests } from "../my-requests/actions";
 import debounce from "debounce-promise";
 
-const debouncedGetAll = debounce(getAllAccounts, 3000);
+const debouncedGetAll = debounce(getAllAccounts, 1000);
 
 const setSearch = (search) => {
   return {
@@ -53,6 +54,7 @@ const fetchAllAccounts = () => {
           response?.data?.data?.nextLink
         )
       );
+      dispatch(fetchAllMyRequests());
       dispatch(setLoading(false));
     } else {
       dispatch(setErrorAllAccounts(response));

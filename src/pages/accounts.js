@@ -1,22 +1,154 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
-import { Input, Table } from "react-daisyui";
+import { Button, Checkbox, Input, Modal, Table, Textarea } from "react-daisyui";
 import { useDispatch, useSelector } from "react-redux";
+import Swal from "sweetalert2";
+import { useRouter } from "next/router";
 
 import HeadComponent from "@/components/HeadComponent";
 import NavbarComponent from "@/components/NavbarComponent";
 import FooterComponent from "@/components/FooterComponent";
+import GapComponent from "@/components/GapComponent";
 
 import { fetchAllAccounts, setSearch } from "@/redux/accounts/actions";
+import { createBulkRequests } from "@/services/my-requests";
 
 export default function Accounts() {
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const { data, search } = useSelector((state) => state?.accountsReducers);
+  const { idMyRequests } = useSelector((state) => state?.myRequestsReducers);
   const { loading } = useSelector((state) => state?.loadingReducers);
 
   const handleChangeSearchBox = (event) => {
     dispatch(setSearch(event?.target?.value));
+  };
+
+  const handleKeyPressSearch = (event) => {
+    if (event.key === "Enter") {
+      handleChangeSearchBox(event);
+    }
+  };
+
+  const [disabledButtonRequest, setDisabledButtonRequest] = useState(false);
+
+  const [visibleRequest, setVisibleRequest] = useState(false);
+
+  const today = new Date().toLocaleDateString();
+  const todayDate = today.split("/")[1];
+  const todayDateTwoDigit =
+    todayDate.toString().length < 2 ? `0${todayDate}` : `${todayDate}`;
+  const todayMonth = today.split("/")[0];
+  const todayMonthTwoDigit =
+    todayMonth.toString().length < 2 ? `0${todayMonth}` : `${todayMonth}`;
+  const todayYear = today.split("/")[2];
+
+  const defaultFromDate = `${todayYear}-${todayMonthTwoDigit}-${todayDateTwoDigit}T08:00`;
+
+  const dayNow = new Date();
+  const tempTomorrow = new Date(dayNow);
+  tempTomorrow.setDate(dayNow.getDate() + 1);
+  const tomorrow = tempTomorrow.toLocaleDateString();
+  const tomorrowDate = tomorrow.split("/")[1];
+  const tomorrowDateTwoDigit =
+    tomorrowDate.toString().length < 2 ? `0${tomorrowDate}` : `${tomorrowDate}`;
+  const tomorrowMonth = tomorrow.split("/")[0];
+  const tomorrowMonthTwoDigit =
+    tomorrowMonth.toString().length < 2
+      ? `0${tomorrowMonth}`
+      : `${tomorrowMonth}`;
+  const tomorrowYear = tomorrow.split("/")[2];
+
+  const defaultToDate = `${tomorrowYear}-${tomorrowMonthTwoDigit}-${tomorrowDateTwoDigit}T23:30`;
+
+  const [form, setForm] = useState({
+    FromDate: Math.floor(new Date(defaultFromDate).getTime() / 1000),
+    ToDate: Math.floor(new Date(defaultToDate).getTime() / 1000),
+    Username: "",
+    Address: "",
+    Reason: "",
+  });
+
+  const [checkboxValue, setCheckboxValue] = useState([]);
+
+  const handleChange = (event) => {
+    // Destructuring
+    const { value, checked } = event.target;
+
+    // Case 1 : The user checks the box
+    if (checked) {
+      setCheckboxValue([...checkboxValue, value]);
+    }
+
+    // Case 2  : The user unchecks the box
+    else {
+      setCheckboxValue(checkboxValue.filter((result) => result !== value));
+    }
+  };
+
+  const toggleVisibleRequest = () => {
+    const _tempUsername = [];
+    const _tempAddress = [];
+
+    if (checkboxValue.length > 0) {
+      for (const iterator of checkboxValue) {
+        _tempUsername.push(iterator.split("|")[0]);
+        _tempAddress.push(iterator.split("|")[1]);
+      }
+
+      const uniqTempUsername = [...new Set(_tempUsername)];
+      const uniqTempAddress = [...new Set(_tempAddress)];
+
+      setForm({
+        ...form,
+        Username: uniqTempUsername.join(";"),
+        Address: uniqTempAddress.join(";"),
+      });
+    }
+
+    setVisibleRequest(!visibleRequest);
+  };
+
+  const handleBulkRequests = async () => {
+    setDisabledButtonRequest(true);
+    if (form?.Username !== "" && form?.Address !== "" && form?.Reason !== "") {
+      const response = await createBulkRequests(form);
+      if (response?.data?.statusCode === 201) {
+        setVisibleRequest(false);
+        setDisabledButtonRequest(false);
+        if (response?.data?.data?.length > 0) {
+          Swal.fire({
+            icon: "success",
+            title: "Berhasil Bulk Requests.",
+            text:
+              response?.data?.message || "Berhasil melakukan bulk requests.",
+          });
+          router.push("/my-request");
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Belum berhasil melakukan bulk requests.",
+          });
+        }
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text:
+            response?.data?.message || "Nampaknya terjadi kesalahan di API.",
+        });
+        setDisabledButtonRequest(false);
+      }
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Silahkan lengkapi semua field.",
+      });
+      setDisabledButtonRequest(false);
+    }
   };
 
   useEffect(() => {
@@ -28,7 +160,7 @@ export default function Accounts() {
       <HeadComponent />
       <NavbarComponent />
       <div className="mb-6 w-full h-screen flex flex-col px-4 lg:px-8">
-        <div className="mb-6 flex flex-col space-y-2 lg:space-y-0 lg:flex-row lg:space-x-2">
+        <div className="mb-6 flex flex-col space-y-2 lg:space-y-0 lg:flex-row lg:space-x-2 lg:justify-between lg:items-end">
           <div className="form-control w-full max-w-xs">
             <label className="label">
               <span className="label-text">Cari</span>
@@ -36,8 +168,19 @@ export default function Accounts() {
             <Input
               name="search"
               type="search"
-              onChange={handleChangeSearchBox}
+              onKeyPress={handleKeyPressSearch}
             />
+          </div>
+          <div className="form-control w-full max-w-xs">
+            <Button
+              color="primary"
+              size="md"
+              className="capitalize"
+              onClick={toggleVisibleRequest}
+              disabled={checkboxValue.length > 0 ? false : true}
+            >
+              Requests
+            </Button>
           </div>
         </div>
 
@@ -78,7 +221,15 @@ export default function Accounts() {
                 {data?.length > 0 &&
                   data?.map((value, index) => (
                     <Table.Row hover key={index}>
-                      <span>{index + 1}</span>
+                      <Checkbox
+                        onChange={(event) => handleChange(event)}
+                        value={`${value?.userName || "-"}|${
+                          value?.address || "-"
+                        }`}
+                        disabled={
+                          idMyRequests.includes(value?.id) ? true : false
+                        }
+                      />
                       <span>{value?.userName || "-"}</span>
                       <span>{value?.address || "-"}</span>
                       <span>{value?.platformId || "-"}</span>
@@ -91,6 +242,111 @@ export default function Accounts() {
           </div>
         )}
       </div>
+
+      {/* START: Modal Request */}
+      <Modal open={visibleRequest} onClickBackdrop={toggleVisibleRequest}>
+        <Modal.Header className="font-bold">Bulk Requests</Modal.Header>
+
+        <Modal.Body>
+          <div className="flex flex-col w-full component-preview p-4 items-center justify-center gap-2">
+            <div className="form-control w-full max-w-md">
+              <label className="label">
+                <span className="label-text">From Date</span>
+              </label>
+              <Input
+                value={defaultFromDate}
+                name="FromDate"
+                type="datetime-local"
+                disabled
+              />
+            </div>
+
+            <div className="form-control w-full max-w-md">
+              <label className="label">
+                <span className="label-text">To Date</span>
+              </label>
+              <Input
+                value={defaultToDate}
+                name="ToDate"
+                type="datetime-local"
+                disabled
+              />
+            </div>
+
+            <div className="form-control w-full max-w-md">
+              <label className="label">
+                <span className="label-text">Username</span>
+              </label>
+              <Textarea name="Username" value={form?.Username} disabled />
+              <p className="text-xs text-blue-500">
+                Example: LIN.OPR.ROOT;ORA.OPR.SYS.EVDB;...
+              </p>
+            </div>
+
+            <div className="form-control w-full max-w-md">
+              <label className="label">
+                <span className="label-text">Address</span>
+              </label>
+              <Textarea name="Address" value={form?.Address} disabled />
+              <p className="text-xs text-blue-500">
+                Example: 10.254.161.62;10.254.161.64;...
+              </p>
+            </div>
+
+            <div className="form-control w-full max-w-md">
+              <label className="label">
+                <span className="label-text">Reason</span>
+              </label>
+              <Textarea
+                name="Reason"
+                required
+                onChange={(event) =>
+                  setForm({ ...form, Reason: event?.target?.value })
+                }
+              />
+            </div>
+
+            <GapComponent height={20} />
+
+            <div className="form-control w-full max-w-md">
+              <Button
+                onClick={handleBulkRequests}
+                className={`capitalize text-white ${
+                  disabledButtonRequest && "cursor-not-allowed"
+                }`}
+                disabled={disabledButtonRequest}
+                color="primary"
+              >
+                {disabledButtonRequest ? (
+                  <>
+                    <svg
+                      aria-hidden="true"
+                      role="status"
+                      className="inline w-4 h-4 mr-3 text-white animate-spin"
+                      viewBox="0 0 100 101"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                        fill="#E5E7EB"
+                      />
+                      <path
+                        d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                    <p className="text-white">Loading...</p>
+                  </>
+                ) : (
+                  "Requests"
+                )}
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+      {/* END: Modal Request */}
 
       <FooterComponent />
     </>

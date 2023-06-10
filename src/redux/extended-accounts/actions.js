@@ -6,7 +6,7 @@ import {
 import { getExtendedAccounts } from "@/services/extended-accounts";
 import debounce from "debounce-promise";
 
-const debouncedGetAll = debounce(getExtendedAccounts, 3000);
+const debouncedGetAll = debounce(getExtendedAccounts, 1000);
 
 const setGetAllExtendedAccounts = (
   details,

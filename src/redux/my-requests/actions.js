@@ -4,12 +4,13 @@ import { setLoading } from "@/redux/loading/actions";
 import { getMyRequests } from "@/services/my-requests";
 import debounce from "debounce-promise";
 
-const debouncedGetAll = debounce(getMyRequests, 3000);
+const debouncedGetAll = debounce(getMyRequests, 1000);
 
-const setGetAllMyRequests = (myRequests, total) => {
+const setGetAllMyRequests = (myRequests, idMyRequests, total) => {
   return {
     type: GET_ALL_MY_REQUESTS,
     myRequests,
+    idMyRequests,
     total,
   };
 };
@@ -28,9 +29,15 @@ const fetchAllMyRequests = () => {
     const response = await debouncedGetAll();
 
     if (response?.data?.statusCode === 200) {
+      const _tempIdMyRequests = [];
+      for (const iterator of response?.data?.data?.MyRequests) {
+        _tempIdMyRequests.push(iterator.AccountDetails.AccountID);
+      }
+
       dispatch(
         setGetAllMyRequests(
           response?.data?.data?.MyRequests,
+          _tempIdMyRequests || [],
           response?.data?.data?.Total
         )
       );

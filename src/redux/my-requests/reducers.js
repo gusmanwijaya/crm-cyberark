@@ -2,6 +2,7 @@ import { GET_ALL_MY_REQUESTS, ERROR_ALL_MY_REQUESTS } from "./types";
 
 const initialState = {
   myRequests: [],
+  idMyRequests: [],
   total: 0,
   error: {},
 };
@@ -12,6 +13,7 @@ const reducers = (state = initialState, action) => {
       return {
         ...state,
         myRequests: action.myRequests,
+        idMyRequests: action.idMyRequests,
         total: action.total,
       };
 
