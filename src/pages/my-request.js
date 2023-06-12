@@ -17,6 +17,7 @@ import {
   bulkDeletes,
 } from "@/services/my-requests";
 import Image from "next/image";
+import exportFromJSON from "export-from-json";
 
 export default function MyRequest() {
   const dispatch = useDispatch();
@@ -111,6 +112,18 @@ export default function MyRequest() {
     Reason: "",
   });
 
+  const handleExportToCSV = () => {
+    const data = [
+      {
+        Username: form?.Username.replaceAll(";", "-") || "",
+        Address: form?.Address.replaceAll(";", "-") || "",
+      },
+    ];
+    const fileName = form?.Reason;
+    const exportType = exportFromJSON.types.csv;
+    exportFromJSON({ data, fileName, exportType, delimiter: "," });
+  };
+
   const handleBulkRequests = async () => {
     setDisabledButtonRequest(true);
     if (form?.Username !== "" && form?.Address !== "" && form?.Reason !== "") {
@@ -127,6 +140,7 @@ export default function MyRequest() {
             text:
               response?.data?.message || "Berhasil melakukan bulk requests.",
           });
+          handleExportToCSV();
         } else {
           Swal.fire({
             icon: "error",
